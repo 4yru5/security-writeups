@@ -136,10 +136,8 @@ footer{margin:5rem 0 3rem;font-family:var(--display);color:var(--mute);font-size
 <header class="hero">
   <div class="mid hero-grid">
     <div>
-      <p class="byline">Field notes on code review, supply-chain risk and automation</p>
       <h1>Pull requests, decoded</h1>
       <p class="dek">A pull request is the last checkpoint between an idea and production. This is how it works, what fires the second you open one, every situation you will run into, and how to automate the tedious parts without automating away your judgment.</p>
-      <p class="meta">About 25 minutes to read. Eight diagrams and a handful of copy-paste automations.</p>
     </div>
     <svg class="hero-mark" viewBox="0 0 280 250" role="img" aria-label="A commit graph: a feature commit sends an arrow into the tip of main.">
       <path class="f" d="M70 84 V162"/>
@@ -154,16 +152,6 @@ footer{margin:5rem 0 3rem;font-family:var(--display);color:var(--mute);font-size
 <main>
 
 <section class="col">
-  <div class="tldr">
-    <h2>The short version</h2>
-    <ul>
-      <li>A PR is a proposal to merge one branch into another, wrapped in a conversation, automated checks and merge rules.</li>
-      <li>Opening one starts a chain of events: a diff, webhooks, CI, reviewer routing, and a merge gate that re-evaluates on every push.</li>
-      <li>The machinery that makes review possible is also attackable. Titles, branch names and forked code are untrusted input flowing into privileged systems.</li>
-      <li>Automate the repeatable gates: templates, CODEOWNERS, branch rules, scanners, triage bots. Keep humans for intent, design and trust.</li>
-      <li>Write every PR so a stranger can review it at five on a Friday. Review every PR as if the author might be wrong, tired, or not who they say they are.</li>
-    </ul>
-  </div>
   <ul class="toc" aria-label="Contents">
     <li><a href="#what">What a pull request actually is</a></li>
     <li><a href="#why">Why PRs exist</a></li>
@@ -1157,10 +1145,6 @@ gh pr merge 123 --auto --squash --delete-branch</code></pre>
   <p>Reflect on what you built, what was hard, and what you learned. Take feedback as a gift. Give it as one. That habit does more for a codebase, and a team, than any tool on the list above.</p>
   <div class="note"><p><b>In one breath:</b> a PR is the bridge between a branch and the main codebase. It carries context to colleagues, protects main with an extra layer of review, and works best when the author explains their thinking and the reviewers stay kind, specific and suspicious in equal measure.</p></div>
 </section>
-
-<footer class="col">
-  <p>Diagrams: Fig. 1 and Fig. 2 are monochrome redraws of the original two-colour illustrations. All other figures are original. Configuration snippets are starting points; test them in a scratch repository first.</p>
-</footer>
 
 </main>
 </body>
