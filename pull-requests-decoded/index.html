@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pull requests, decoded</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1f0; --fig:#e3e3e1; --n0:#fafafa; --n1:#d2d2d0; --n2:#9f9f9c; --n3:#161616;
+  --ink:#161616; --ink2:#3d3d3d; --mute:#5c5c5c; --rule:rgba(22,22,22,.22);
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121212; --fig:#1d1d1d; --n0:#0b0b0b; --n1:#2d2d2d; --n2:#5a5a5a; --n3:#efefef;
+    --ink:#ececec; --ink2:#c9c9c9; --mute:#9a9a9a; --rule:rgba(236,236,236,.24);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121212; --fig:#1d1d1d; --n0:#0b0b0b; --n1:#2d2d2d; --n2:#5a5a5a; --n3:#efefef;
+  --ink:#ececec; --ink2:#c9c9c9; --mute:#9a9a9a; --rule:rgba(236,236,236,.24);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:1.125rem;line-height:1.72;border-top:8px solid var(--ink)}
+a{color:var(--ink);text-decoration-thickness:1px;text-underline-offset:3px}
+a:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.col{max-width:43rem;margin-inline:auto;padding-inline:1.25rem}
+.mid{max-width:60rem;margin-inline:auto;padding-inline:1.25rem}
+.wide{max-width:74rem;margin-inline:auto;padding-inline:1.25rem}
+p{margin:0 0 1.15rem}
+h1,h2,h3{font-family:var(--display);color:var(--ink);margin:0}
+h2{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.05;letter-spacing:-.025em;font-weight:700;margin:4.5rem 0 1.4rem;padding-top:1rem;border-top:2px solid var(--ink)}
+h3{font-size:1.3rem;letter-spacing:-.01em;font-weight:700;margin:2.2rem 0 .6rem;line-height:1.2}
+code{font-family:var(--mono);font-size:.84em;background:var(--fig);padding:.08em .35em}
+pre{background:var(--n3);color:var(--bg);padding:1.1rem 1.2rem;overflow-x:auto;font:400 .85rem/1.58 var(--mono);margin:0 0 1.6rem;tab-size:2}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+ul,ol{padding-left:1.3rem;margin:0 0 1.2rem}
+li{margin-bottom:.45rem}
+
+/* hero */
+.hero{padding:3.5rem 0 2.5rem}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:2rem;align-items:center}
+@media (min-width:52rem){.hero-grid{grid-template-columns:1.5fr 1fr}}
+.byline{font-family:var(--display);color:var(--mute);font-size:1rem;margin:0 0 1.2rem}
+h1{font-size:clamp(3.2rem,9.5vw,7.2rem);line-height:.9;letter-spacing:-.045em;font-weight:800;margin-bottom:1.6rem}
+.dek{font-size:1.32rem;line-height:1.5;max-width:34rem;margin-bottom:1.2rem}
+.meta{font-family:var(--display);color:var(--mute);font-size:.98rem;margin:0}
+.hero-mark{width:100%;max-width:22rem;height:auto;justify-self:center}
+
+/* toc + tldr */
+.tldr{border:2px solid var(--ink);padding:1.4rem 1.6rem 1rem;margin:0 0 2.5rem;background:var(--fig)}
+.tldr h2{margin:0 0 .8rem;padding:0;border:0;font-size:1.5rem}
+.tldr li{font-family:var(--display);font-size:1.02rem;line-height:1.5}
+.toc{columns:2 15rem;column-gap:2rem;font-family:var(--display);padding:0;list-style:none;margin:0 0 1rem}
+.toc li{margin:0 0 .45rem;break-inside:avoid}
+
+/* figures */
+figure{margin:2.4rem 0}
+.plate{background:var(--fig);border:1px solid var(--rule);padding:1.1rem;overflow-x:auto}
+figcaption{font-family:var(--display);font-size:.95rem;line-height:1.5;color:var(--ink2);margin-top:.7rem;max-width:56rem}
+figcaption b{color:var(--ink)}
+.dg{display:block;width:100%;height:auto}
+.dg text{font-family:var(--display);font-size:13px;font-weight:500;fill:var(--ink)}
+.dg .b{font-weight:700}
+.dg .sm{font-size:11.5px}
+.dg .big{font-size:15px}
+.dg .on3{fill:var(--bg)}
+.dg .lb{paint-order:stroke;stroke:var(--fig);stroke-width:5px;stroke-linejoin:round}
+.dg .n0,.dg .n1,.dg .n2,.dg .n3{stroke:var(--ink);stroke-width:2}
+.dg .n0{fill:var(--n0)} .dg .n1{fill:var(--n1)} .dg .n2{fill:var(--n2)} .dg .n3{fill:var(--n3)}
+.dg .hd{stroke-dasharray:6 5}
+.dg .dot{stroke-dasharray:1 5.5;stroke-linecap:round;stroke-width:2.6}
+.dg .zone{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 6}
+.dg .f{fill:none;stroke:var(--ink);stroke-width:2}
+.dg .thick{stroke-width:5}
+.dg .thin{stroke-width:1.5}
+.dg .dash{stroke-dasharray:8 6}
+.hero-mark .n0,.hero-mark .n1,.hero-mark .n2,.hero-mark .n3{stroke:var(--ink);stroke-width:4}
+.hero-mark .n0{fill:var(--n0)} .hero-mark .n1{fill:var(--n1)} .hero-mark .n2{fill:var(--n2)} .hero-mark .n3{fill:var(--n3)}
+.hero-mark .f{fill:none;stroke:var(--ink);stroke-width:7}
+.ahp{fill:var(--ink)}
+
+/* tables */
+.tbl{overflow-x:auto;margin:1.6rem 0 2rem}
+table{border-collapse:collapse;width:100%;min-width:40rem;font-family:var(--display);font-size:.95rem;line-height:1.5}
+th{text-align:left;font-weight:700;padding:.65rem .9rem;border-bottom:2px solid var(--ink);background:var(--bg)}
+td{padding:.75rem .9rem;border-bottom:1px solid var(--rule);vertical-align:top}
+td:first-child{font-weight:700;min-width:9rem}
+td code{font-size:.85em}
+
+/* callouts */
+.note{border-left:5px solid var(--ink);background:var(--fig);padding:1rem 1.3rem;margin:1.8rem 0;font-family:var(--display);font-size:1.02rem;line-height:1.55}
+.note p:last-child{margin:0}
+
+/* numbered process */
+ol.steps{list-style:none;counter-reset:s -1;padding:0;margin:1.6rem 0}
+ol.steps>li{counter-increment:s;position:relative;padding:0 0 1.15rem 3.4rem;margin:0}
+ol.steps>li::before{content:counter(s);position:absolute;left:0;top:.1rem;width:2.3rem;height:2.3rem;border:2px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:1rem}
+ol.steps>li b{font-family:var(--display)}
+
+/* use-case cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(20rem,1fr));gap:1px;background:var(--ink);border:1px solid var(--ink);margin:1.8rem 0}
+.card{background:var(--bg);padding:1.3rem 1.4rem 1.1rem}
+.card h3{margin:0 0 .6rem;font-size:1.2rem}
+.card p{font-family:var(--display);font-size:.96rem;line-height:1.5;margin:0 0 .55rem}
+.card p b{font-weight:700}
+
+/* do / don't */
+.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:2.2rem;margin:1.6rem 0}
+.duo h3{margin-top:0;padding-bottom:.4rem;border-bottom:2px solid var(--ink)}
+.duo ul{font-family:var(--display);font-size:1rem;line-height:1.5}
+.duo .dont li{list-style:"\2013  "}
+.duo .do li{list-style:"+  "}
+
+footer{margin:5rem 0 3rem;font-family:var(--display);color:var(--mute);font-size:.95rem}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="1.67" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path class="ahp" d="M0 0 L10 5 L0 10 z"/></marker>
+    <marker id="ahb" viewBox="0 0 10 10" refX="1.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" orient="auto-start-reverse"><path class="ahp" d="M0 0 L10 5 L0 10 z"/></marker>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="mid hero-grid">
+    <div>
+      <p class="byline">Field notes on code review, supply-chain risk and automation</p>
+      <h1>Pull requests, decoded</h1>
+      <p class="dek">A pull request is the last checkpoint between an idea and production. This is how it works, what fires the second you open one, every situation you will run into, and how to automate the tedious parts without automating away your judgment.</p>
+      <p class="meta">About 25 minutes to read. Eight diagrams and a handful of copy-paste automations.</p>
+    </div>
+    <svg class="hero-mark" viewBox="0 0 280 250" role="img" aria-label="A commit graph: a feature commit sends an arrow into the tip of main.">
+      <path class="f" d="M70 84 V162"/>
+      <path class="f" d="M220 162 V56 H127" marker-end="url(#ahb)"/>
+      <circle class="n3" cx="70" cy="56" r="26"/>
+      <circle class="n1" cx="70" cy="190" r="26"/>
+      <circle class="n2" cx="220" cy="190" r="26"/>
+    </svg>
+  </div>
+</header>
+
+<main>
+
+<section class="col">
+  <div class="tldr">
+    <h2>The short version</h2>
+    <ul>
+      <li>A PR is a proposal to merge one branch into another, wrapped in a conversation, automated checks and merge rules.</li>
+      <li>Opening one starts a chain of events: a diff, webhooks, CI, reviewer routing, and a merge gate that re-evaluates on every push.</li>
+      <li>The machinery that makes review possible is also attackable. Titles, branch names and forked code are untrusted input flowing into privileged systems.</li>
+      <li>Automate the repeatable gates: templates, CODEOWNERS, branch rules, scanners, triage bots. Keep humans for intent, design and trust.</li>
+      <li>Write every PR so a stranger can review it at five on a Friday. Review every PR as if the author might be wrong, tired, or not who they say they are.</li>
+    </ul>
+  </div>
+  <ul class="toc" aria-label="Contents">
+    <li><a href="#what">What a pull request actually is</a></li>
+    <li><a href="#why">Why PRs exist</a></li>
+    <li><a href="#shape">The shape of a PR</a></li>
+    <li><a href="#anatomy">Anatomy, part by part</a></li>
+    <li><a href="#opens">The moment you open one</a></li>
+    <li><a href="#lifecycle">What happens next</a></li>
+    <li><a href="#merge">Merge strategies</a></li>
+    <li><a href="#review">Review and feedback</a></li>
+    <li><a href="#usecases">The use-case playbook</a></li>
+    <li><a href="#attack">PRs as an attack surface</a></li>
+    <li><a href="#automation">Automation recipes</a></li>
+    <li><a href="#metrics">What to measure</a></li>
+    <li><a href="#resources">Resources</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</section>
+
+<!-- ============ WHAT ============ -->
+<section class="col" id="what">
+  <h2>What a pull request actually is</h2>
+  <p>A pull request (a merge request on GitLab) is a formal proposal: take the commits on my branch and merge them into yours. Git itself has no such object. The nearest native thing is <code>git request-pull</code>, which prints a summary you would email to a maintainer. Hosting platforms turned that idea into a web object that ties together a comparison (base ← head), a conversation, automated checks, and a set of rules about when the merge button switches on.</p>
+  <p>Fig. 1 strips it to the bones. The bottom-left dot is the commit <code>main</code> sits on today. The bottom-right dot is your work, made on a separate branch. The top dot is what <code>main</code> becomes if the proposal is accepted. The arrow is the pull request: not code, not a branch, but a request with a paper trail.</p>
+</section>
+
+<figure class="mid">
+  <div class="plate">
+    <svg class="dg" style="min-width:520px" viewBox="0 0 640 360" role="img" aria-label="Three commits. A light commit on main at bottom left, a mid-grey feature commit at bottom right, and a black merge result at top left. An arrow runs from the feature commit into the merge result.">
+      <path class="f thick" d="M130 110 V240"/>
+      <path class="f thick" d="M510 240 V80 H181" marker-end="url(#ahb)"/>
+      <circle class="n3" cx="130" cy="80" r="30"/>
+      <circle class="n1" cx="130" cy="270" r="30"/>
+      <circle class="n2" cx="510" cy="270" r="30"/>
+      <text class="big b" x="130" y="34" text-anchor="middle">main after the merge</text>
+      <text class="lb" x="338" y="66" text-anchor="middle">the pull request</text>
+      <text class="big b" x="130" y="324" text-anchor="middle">base commit</text>
+      <text class="sm" x="130" y="342" text-anchor="middle">already on main</text>
+      <text class="big b" x="510" y="324" text-anchor="middle">your commit</text>
+      <text class="sm" x="510" y="342" text-anchor="middle">on your feature branch</text>
+    </svg>
+  </div>
+  <figcaption><b>Fig. 1.</b> The PR at commit level. Light: the base commit already on main. Mid-grey: your commit, made on a feature branch. Black: the tip of main once the change is accepted. The arrow is the PR itself.</figcaption>
+</figure>
+
+<section class="col">
+  <p>Branches exist so that nobody ships half-finished or incompatible work to production by accident. The pull request is the door between a branch and the shared codebase, and the door has a person, and usually some robots, standing in it.</p>
+</section>
+
+<!-- ============ WHY ============ -->
+<section class="col" id="why">
+  <h2>Why PRs exist</h2>
+  <p>A PR does three jobs at once, and teams that only notice one of them end up with a weaker process.</p>
+  <p><b>It is a quality gate.</b> Someone other than the author, plus a set of automated checks, looks at the change before it joins everything else. That gap between writing and merging is where bugs, missed edge cases and style drift get caught while they are still cheap.</p>
+  <p><b>It is a communication channel.</b> The commit log says what changed. The PR is where you say why, what you tried, what worries you and what you would do with more time. Reviewers can check the branch out and run it, which brings more eyes and more kinds of expertise to the work.</p>
+  <p><b>It is evidence.</b> Who proposed the change, who approved it, which checks passed, what was argued about: the PR is the audit trail your change-management policy quietly depends on.</p>
+  <div class="note"><p>The security researcher's version: a PR is the one place where an attacker's change, your automation and a tired human's attention all meet. Almost every control in this post hangs off that single intersection.</p></div>
+</section>
+
+<!-- ============ SHAPE ============ -->
+<section class="col" id="shape">
+  <h2>The shape of a PR</h2>
+  <p>Fig. 2 zooms out. Your branch sits on the left, main on the right, and the PR is the bridge between them. Two things orbit it. <b>Discussion</b> is the comments, questions and decisions. <b>Follow-up commits</b> are the fixes those conversations produce. Every push to the head branch updates the PR in place: the diff, the checks and the conversation all re-anchor to the new commit.</p>
+</section>
+
+<figure class="mid">
+  <div class="plate">
+    <svg class="dg" style="min-width:600px" viewBox="0 0 760 500" role="img" aria-label="Flow diagram. Your Branch, a diamond, sends a thick arrow into the PR, drawn as the three-commit graph. Another thick arrow runs from the PR to Main Branch, a star. Thin arrows from the PR lead up to Discussion speech bubbles and to Follow-up commits.">
+      <text class="b big" x="24" y="90">Discussion</text>
+      <path class="n3" d="M84 166 L66 196 L108 174 Z"/>
+      <ellipse class="n3" cx="110" cy="150" rx="38" ry="26"/>
+      <path class="n0" d="M196 126 L218 152 L180 130 Z"/>
+      <ellipse class="n0" cx="175" cy="105" rx="38" ry="26"/>
+
+      <rect class="n2" x="562" y="94" width="74" height="74" rx="16"/>
+      <rect class="n1" x="600" y="62" width="74" height="74" rx="16"/>
+      <text class="b big" x="560" y="198">Follow-up</text>
+      <text class="b big" x="560" y="216">commits</text>
+
+      <path class="f thin" d="M352 226 L242.1 179.4" marker-end="url(#ah)"/>
+      <path class="f thin" d="M418 226 L539.9 173.5" marker-end="url(#ah)"/>
+
+      <path class="f thick" d="M368 262 V318"/>
+      <path class="f thick" d="M430 318 V250 H392.8" marker-end="url(#ah)" style="stroke-width:4"/>
+      <circle class="n3" cx="370" cy="250" r="12"/>
+      <circle class="n1" cx="370" cy="330" r="12"/>
+      <circle class="n2" cx="430" cy="330" r="12"/>
+      <text class="b" x="400" y="298" text-anchor="middle">PR</text>
+
+      <polygon class="n1" points="110,280 200,370 110,460 20,370"/>
+      <text class="b big" x="110" y="368" text-anchor="middle">Your</text>
+      <text class="b big" x="110" y="388" text-anchor="middle">Branch</text>
+      <path class="f thick" d="M206 374 L331.9 327.2" marker-end="url(#ahb)"/>
+
+      <polygon class="n2" points="640,290 663.5,352.6 730.4,355.6 678,397.4 695.8,461.9 640,425 584.2,461.9 602,397.4 549.7,355.6 616.5,352.6"/>
+      <text class="b big" x="640" y="390" text-anchor="middle">Main</text>
+      <text class="b big" x="640" y="409" text-anchor="middle">Branch</text>
+      <path class="f thick" d="M456 320 L522.1 346.4" marker-end="url(#ahb)"/>
+    </svg>
+  </div>
+  <figcaption><b>Fig. 2.</b> The PR as a bridge. Thick arrows carry the change from your branch toward main. Thin arrows show what the PR sprouts along the way: discussion, and the follow-up commits that answer it.</figcaption>
+</figure>
+
+<!-- ============ ANATOMY ============ -->
+<section class="col" id="anatomy">
+  <h2>Anatomy, part by part</h2>
+  <p>Every PR, on every platform, is made of the same handful of parts. Knowing what each one is for tells you where to put controls and where an attacker will look.</p>
+</section>
+
+<div class="mid">
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Part</th><th>What it is</th><th>What to do with it</th></tr></thead>
+      <tbody>
+        <tr><td>Base and head</td><td>Base is the branch the change wants to land on. Head is the branch it lives on. The diff is computed between them.</td><td>Check the base. A PR aimed at a long-lived release branch can skip gates you built for main.</td></tr>
+        <tr><td>Title</td><td>A one-line summary that tooling often parses (Conventional Commits, changelog generators).</td><td>Enforce a format with a check. Never paste it into a shell command; it is attacker-controlled text.</td></tr>
+        <tr><td>Description</td><td>The why, the what, how it was tested and what is risky. Markdown, with task lists and images.</td><td>Pre-fill it with a template so the hard questions cannot be skipped.</td></tr>
+        <tr><td>Linked issues</td><td>Keywords such as <code>Fixes #123</code> close the issue when the PR merges.</td><td>Every change should trace back to a reason.</td></tr>
+        <tr><td>Commits</td><td>The individual commits, in order, with authors and messages.</td><td>Skim the authors and messages. Unexpected authors, unsigned commits when policy says signed, and "fix typo" commits touching unrelated files are worth a question.</td></tr>
+        <tr><td>Files changed</td><td>The diff. It shows what changed since the merge base, not everything that differs between the branch tips.</td><td>This is where review happens. Very large or generated files are collapsed by default, which is exactly where things hide.</td></tr>
+        <tr><td>Conversation</td><td>The timeline: comments, reviews, pushes, check results.</td><td>Decisions live here. Resolve every thread before merging.</td></tr>
+        <tr><td>Inline comments</td><td>Comments pinned to specific lines, optionally with a suggested change.</td><td>Point at lines. It is more precise, and easier to act on, than a general remark.</td></tr>
+        <tr><td>Reviews</td><td>A verdict of Comment, Approve or Request changes, recorded against a specific commit.</td><td>An approval of commit X is not an approval of commit Y. Configure dismissal of stale approvals.</td></tr>
+        <tr><td>Reviewers and assignees</td><td>Who was asked to review, and who owns getting the PR merged.</td><td>Let CODEOWNERS fill this in automatically.</td></tr>
+        <tr><td>Labels and projects</td><td>Metadata for filtering, dashboards and automation.</td><td>Labels are automation hooks. A <code>needs-security-review</code> label can trigger stricter rules.</td></tr>
+        <tr><td>Checks</td><td>Status checks and check runs from CI and scanners, attached to the head commit.</td><td>Mark the ones that matter as required; an optional check is a suggestion.</td></tr>
+        <tr><td>Draft state</td><td>A "not ready" flag. Drafts cannot be merged.</td><td>Early feedback without pinging reviewers. Code owners are only requested once the draft is marked ready.</td></tr>
+        <tr><td>Merge box</td><td>Merge method, auto-merge, merge queue and the "update branch" button.</td><td>The place where policy is finally enforced.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<section class="col">
+  <h3>A description worth reading</h3>
+  <p>The description is the part authors most often skip and reviewers most often wish they had. A good one answers a few questions before anyone has to ask them: what does this change, what problem or bug does it address, what related issues or PRs does it touch, how did you test it, what was hard, and what would you do next with more time. Learning projects and open-source contributions benefit from two extras: what you learned, and what you are still unsure about. On a routine bug fix, skip the "more time" section; not every question earns a place on every PR.</p>
+  <p>Add screenshots, a short demo, or input and output snippets whenever the change is visible. And add a security section, because reviewers will not think of it unless you prompt them. Put all of it in a template so the questions are asked every time:</p>
+<pre><code>&lt;!-- .github/pull_request_template.md --&gt;
+## What does this change?
+&lt;!-- One paragraph. What behaviour is different after merge? --&gt;
+
+## Why
+Fixes #
+&lt;!-- The bug fixed, the feature enabled, or the debt paid down. Link related issues and PRs. --&gt;
+
+## How I tested it
+- [ ] Unit or integration tests added or updated
+- [ ] Verified manually (steps, screenshots or output below)
+
+## Security impact
+- [ ] No new external input, or it is validated at the boundary
+- [ ] No new dependencies, or they were reviewed (maintainer, age, install scripts)
+- [ ] No secrets, tokens or internal URLs in code, tests or fixtures
+- [ ] No change to auth, permissions, CI workflows or CODEOWNERS (or owners are requested)
+
+## Challenges and open questions
+&lt;!-- Blockers, trade-offs, anything you want a second opinion on. --&gt;
+
+## Learned, and what next (optional)
+&lt;!-- Handy on learning projects. Skip on routine fixes. --&gt;
+
+## Evidence
+&lt;!-- Before and after screenshots, a demo, input/output snippets. --&gt;</code></pre>
+</section>
+
+<!-- ============ OPENS ============ -->
+<section class="col" id="opens">
+  <h2>The moment you open one</h2>
+  <p>Nothing about a PR is magic. It is a chain of events, and once you can see the chain you can put controls on it. Fig. 3 is a level-one data-flow diagram of everything the platform does between you clicking "Create pull request" and the merge button changing state.</p>
+</section>
+
+<figure class="wide">
+  <div class="plate">
+    <svg class="dg" style="min-width:920px" viewBox="0 0 1080 580" role="img" aria-label="Data flow diagram of opening a pull request. The developer pushes to git refs and objects, then opens the PR. Process 1.0 creates the PR, stores a PR record, and emits an event to process 2.0. Process 2.0 triggers checks in 3.0, reviewer routing in 4.0 and the merge gate in 5.0. Checks run on an Actions runner. Reviewers respond to 4.0. Merge rules feed 5.0, which outputs the merge button state.">
+      <!-- stores -->
+      <rect class="n2 dot" x="215" y="50" width="150" height="50"/>
+      <text class="sm" x="290" y="71" text-anchor="middle">D1</text>
+      <text class="b" x="290" y="89" text-anchor="middle">Git refs + objects</text>
+      <rect class="n2 dot" x="215" y="470" width="150" height="50"/>
+      <text class="sm" x="290" y="491" text-anchor="middle">D2</text>
+      <text class="b" x="290" y="509" text-anchor="middle">PR record</text>
+      <rect class="n2 dot" x="940" y="165" width="120" height="48"/>
+      <text class="sm" x="1000" y="185" text-anchor="middle">D4</text>
+      <text class="b" x="1000" y="203" text-anchor="middle">Merge rules</text>
+
+      <!-- entities -->
+      <rect class="n1" x="20" y="250" width="130" height="70"/>
+      <text class="b" x="85" y="282" text-anchor="middle">Developer</text>
+      <text class="sm" x="85" y="300" text-anchor="middle">local clone</text>
+      <rect class="n1" x="940" y="65" width="120" height="60"/>
+      <text class="b" x="1000" y="92" text-anchor="middle">Actions runner</text>
+      <text class="sm" x="1000" y="110" text-anchor="middle">ephemeral VM</text>
+      <rect class="n1" x="940" y="445" width="120" height="60"/>
+      <text class="b" x="1000" y="472" text-anchor="middle">Reviewers</text>
+      <text class="sm" x="1000" y="490" text-anchor="middle">people and bots</text>
+      <rect class="n1" x="940" y="262" width="120" height="66"/>
+      <text class="b" x="1000" y="292" text-anchor="middle">Merge button</text>
+      <text class="sm" x="1000" y="310" text-anchor="middle">UI and API</text>
+
+      <!-- processes -->
+      <rect class="n0" x="215" y="235" width="150" height="100" rx="22"/>
+      <text class="sm" x="290" y="266" text-anchor="middle">1.0</text>
+      <text class="b" x="290" y="285" text-anchor="middle">Create PR</text>
+      <text class="sm" x="290" y="304" text-anchor="middle">diff base ← head</text>
+      <rect class="n0" x="440" y="235" width="150" height="100" rx="22"/>
+      <text class="sm" x="515" y="266" text-anchor="middle">2.0</text>
+      <text class="b" x="515" y="285" text-anchor="middle">Emit events</text>
+      <text class="sm" x="515" y="304" text-anchor="middle">webhooks, triggers</text>
+      <rect class="n0" x="690" y="45" width="180" height="100" rx="22"/>
+      <text class="sm" x="780" y="76" text-anchor="middle">3.0</text>
+      <text class="b" x="780" y="95" text-anchor="middle">Run checks</text>
+      <text class="sm" x="780" y="114" text-anchor="middle">tests, SAST, secrets, deps</text>
+      <rect class="n0" x="690" y="235" width="180" height="100" rx="22"/>
+      <text class="sm" x="780" y="266" text-anchor="middle">5.0</text>
+      <text class="b" x="780" y="285" text-anchor="middle">Evaluate merge gate</text>
+      <text class="sm" x="780" y="304" text-anchor="middle">rules + checks + approvals</text>
+      <rect class="n0" x="690" y="425" width="180" height="100" rx="22"/>
+      <text class="sm" x="780" y="456" text-anchor="middle">4.0</text>
+      <text class="b" x="780" y="475" text-anchor="middle">Route reviewers</text>
+      <text class="sm" x="780" y="494" text-anchor="middle">CODEOWNERS, assignees</text>
+
+      <!-- flows -->
+      <path class="f" d="M85 250 V75 H204.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="150" y="67" text-anchor="middle">git push</text>
+      <path class="f" d="M150 285 H204.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="182" y="277" text-anchor="middle">open PR</text>
+      <path class="f" d="M290 100 V224.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="298" y="172">commits + diff</text>
+      <path class="f" d="M290 335 V459.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="298" y="410">PR record</text>
+      <path class="f" d="M365 285 H429.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="402" y="277" text-anchor="middle">opened</text>
+      <path class="f" d="M590 285 H679.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="615" y="277" text-anchor="middle">event</text>
+      <path class="f" d="M640 285 V95 H679.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="648" y="195">run checks</text>
+      <path class="f" d="M640 285 V475 H679.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="648" y="385">request reviews</text>
+      <path class="f" d="M780 145 V224.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="788" y="195">check status</text>
+      <path class="f" d="M780 425 V345.8" marker-end="url(#ah)"/>
+      <text class="lb sm" x="788" y="385">approvals</text>
+      <path class="f" d="M870 80 H929.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="905" y="73" text-anchor="middle">job</text>
+      <path class="f" d="M940 110 H880.8" marker-end="url(#ah)"/>
+      <text class="lb sm" x="905" y="103" text-anchor="middle">result</text>
+      <path class="f" d="M870 460 H929.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="905" y="453" text-anchor="middle">notify</text>
+      <path class="f" d="M940 490 H880.8" marker-end="url(#ah)"/>
+      <text class="lb sm" x="905" y="483" text-anchor="middle">review</text>
+      <path class="f" d="M940 189 H905 V268 H880.8" marker-end="url(#ah)"/>
+      <text class="lb sm" x="922" y="181" text-anchor="middle">rules</text>
+      <path class="f" d="M870 300 H929.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="905" y="293" text-anchor="middle">status</text>
+
+      <!-- legend -->
+      <rect class="n1" x="20" y="542" width="30" height="18"/>
+      <text class="sm" x="58" y="555">external actor</text>
+      <rect class="n0" x="170" y="542" width="30" height="18" rx="7"/>
+      <text class="sm" x="208" y="555">process</text>
+      <rect class="n2 dot" x="302" y="542" width="30" height="18"/>
+      <text class="sm" x="340" y="555">data store</text>
+      <path class="f" d="M440 551 H466.2" marker-end="url(#ah)"/>
+      <text class="sm" x="484" y="555">data flow</text>
+    </svg>
+  </div>
+  <figcaption><b>Fig. 3.</b> What the platform does when a PR opens. Processes are rounded, external actors are grey rectangles, data stores are dotted rectangles. Process 5.0 is re-run on every event, which is why the merge button can turn off again after it turned on.</figcaption>
+</figure>
+
+<section class="col">
+  <p>Read the diagram left to right, then walk through it step by step. The numbers below match the process numbers in the figure.</p>
+  <ol class="steps">
+    <li><b>Before the PR exists: the push.</b> <code>git push</code> sends your branch to the remote (D1). Push-time controls fire here: secret push protection, rules about who can push where, and any workflows triggered by <code>push</code>. Pushing a branch does not open a PR.</li>
+    <li><b>Create the PR.</b> The platform records the base, head, title and body (D2) and computes the diff from the merge base to your head. It also attempts a trial merge and keeps the result under a hidden ref, <code>refs/pull/N/merge</code>. That trial merge, meaning what main would look like with your change, is what most CI actually tests.</li>
+    <li><b>Emit events.</b> A <code>pull_request</code> event with the action <code>opened</code> goes out to webhooks (chat bots, integrations, security tools) and to the workflow engine. Later pushes fire <code>synchronize</code>, marking a draft ready fires <code>ready_for_review</code>, and so on. By default, workflows on <code>pull_request</code> run for opened, synchronize and reopened.</li>
+    <li><b>Run checks.</b> Workflows whose triggers match are queued onto ephemeral runners. For PRs from forks, the token is read-only and secrets are withheld, and maintainers can require approval before a first-time contributor's workflows run at all. Third-party apps report their own check runs. Every result is attached to the head commit, so a new push means a fresh set of results.</li>
+    <li><b>Route reviewers.</b> Paths that match a CODEOWNERS entry trigger review requests. Notifications go out, and reviews start to accumulate as Comment, Approve or Request changes, each recorded against a commit.</li>
+    <li><b>Evaluate the merge gate.</b> The platform keeps asking one question: are the required approvals in, are the required checks green, are conversations resolved, is the branch up to date? Its answer, driven by your rules (D4), decides whether the merge button is enabled.</li>
+    <li><b>Loop.</b> Push a fix and the process restarts from the events step. Nothing you approved or passed before is guaranteed to still count.</li>
+  </ol>
+  <div class="note"><p>Step 3 is where attacker-controlled input meets privileged machinery. Runners execute code, hold tokens and sometimes hold secrets. That is why a whole section of this post is about the trust boundary around it.</p></div>
+</section>
+
+<!-- ============ LIFECYCLE ============ -->
+<section class="col" id="lifecycle">
+  <h2>What happens next</h2>
+  <p>After opening, a PR moves through a small set of states. Fig. 4 shows the happy path along the top, and the loops that real life adds underneath it.</p>
+</section>
+
+<figure class="wide">
+  <div class="plate">
+    <svg class="dg" style="min-width:900px" viewBox="0 0 1080 430" role="img" aria-label="State diagram. The main path runs Draft, Ready for review, In review, Approved, Merge queue, Merged, then Deploy. From In review, a Changes requested state leads to Follow-up commits, which lead back to In review. From Approved, a Conflicts state leads to Follow-up commits. Draft leads by dashed arrow to Closed, which can happen from any state.">
+      <!-- row 1 -->
+      <path class="f" d="M160 92 H183.2" marker-end="url(#ah)"/>
+      <path class="f" d="M334 92 H357.2" marker-end="url(#ah)"/>
+      <path class="f" d="M508 92 H531.2" marker-end="url(#ah)"/>
+      <path class="f" d="M682 92 H705.2" marker-end="url(#ah)"/>
+      <path class="f" d="M856 92 H879.2" marker-end="url(#ah)"/>
+      <rect class="n1" x="20" y="60" width="140" height="64" rx="10"/>
+      <text class="b" x="90" y="88" text-anchor="middle">Draft</text><text class="sm" x="90" y="106" text-anchor="middle">WIP, no reviews</text>
+      <rect class="n0" x="194" y="60" width="140" height="64" rx="10"/>
+      <text class="b" x="264" y="88" text-anchor="middle">Ready for review</text><text class="sm" x="264" y="106" text-anchor="middle">reviewers requested</text>
+      <rect class="n0" x="368" y="60" width="140" height="64" rx="10"/>
+      <text class="b" x="438" y="88" text-anchor="middle">In review</text><text class="sm" x="438" y="106" text-anchor="middle">comments + checks</text>
+      <rect class="n2" x="542" y="60" width="140" height="64" rx="10"/>
+      <text class="b" x="612" y="88" text-anchor="middle">Approved</text><text class="sm" x="612" y="106" text-anchor="middle">reviews satisfied</text>
+      <rect class="n2" x="716" y="60" width="140" height="64" rx="10"/>
+      <text class="b" x="786" y="88" text-anchor="middle">Merge queue</text><text class="sm" x="786" y="106" text-anchor="middle">or auto-merge</text>
+      <rect class="n3" x="890" y="60" width="140" height="64" rx="10"/>
+      <text class="b on3" x="960" y="88" text-anchor="middle">Merged</text><text class="sm on3" x="960" y="106" text-anchor="middle">history updated</text>
+
+      <!-- loops -->
+      <path class="f" d="M480 124 V209.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="490" y="175">changes requested</text>
+      <path class="f" d="M368 252 H344.8" marker-end="url(#ah)"/>
+      <path class="f" d="M264 220 V172 H400 V134.8" marker-end="url(#ah)"/>
+      <text class="lb sm" x="272" y="190">checks re-run,</text>
+      <text class="lb sm" x="272" y="204">stale approvals dismissed</text>
+      <path class="f" d="M612 124 V209.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="620" y="175">base moved on</text>
+      <path class="f" d="M612 284 V340 H264 V294.8" marker-end="url(#ah)"/>
+      <text class="lb sm" x="272" y="358">rebase or merge base, then push</text>
+      <path class="f" d="M960 124 V209.2" marker-end="url(#ah)"/>
+
+      <!-- row 2 -->
+      <rect class="n1" x="194" y="220" width="140" height="64" rx="10"/>
+      <text class="b" x="264" y="248" text-anchor="middle">Follow-up commits</text><text class="sm" x="264" y="266" text-anchor="middle">author pushes fixes</text>
+      <rect class="n1" x="368" y="220" width="140" height="64" rx="10"/>
+      <text class="b" x="438" y="248" text-anchor="middle">Changes requested</text><text class="sm" x="438" y="266" text-anchor="middle">reviewer blocks</text>
+      <rect class="n1" x="542" y="220" width="140" height="64" rx="10"/>
+      <text class="b" x="612" y="248" text-anchor="middle">Conflicts</text><text class="sm" x="612" y="266" text-anchor="middle">out of date</text>
+      <rect class="n0" x="890" y="220" width="140" height="64" rx="10"/>
+      <text class="b" x="960" y="248" text-anchor="middle">Deploy or release</text><text class="sm" x="960" y="266" text-anchor="middle">branch deleted</text>
+
+      <!-- closed -->
+      <path class="f dash" d="M90 124 V329.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="98" y="230">close from</text>
+      <text class="lb sm" x="98" y="244">any state</text>
+      <rect class="n0 hd" x="20" y="340" width="140" height="64" rx="10"/>
+      <text class="b" x="90" y="368" text-anchor="middle">Closed</text><text class="sm" x="90" y="386" text-anchor="middle">not merged</text>
+    </svg>
+  </div>
+  <figcaption><b>Fig. 4.</b> The lifecycle of a PR. Grey shades darken as the change gets closer to production. The dashed arrow is the exit every open PR always has.</figcaption>
+</figure>
+
+<section class="col">
+  <h3>State by state</h3>
+  <p><b>Draft.</b> The author wants eyes on a direction, not a verdict. A draft cannot be merged, and code owners are not pinged until it is marked ready. Checks can still run, which is useful: secrets pushed in a work-in-progress commit are still secrets.</p>
+  <p><b>Ready for review, then in review.</b> Reviewers leave one of three verdicts. <i>Comment</i> gives feedback without a decision. <i>Approve</i> says this commit is fine. <i>Request changes</i> blocks the merge until the same reviewer, or someone with authority, clears it. Checks run alongside, and unresolved conversations may block the merge.</p>
+  <p><b>Changes requested, then follow-up commits.</b> The author pushes fixes. That is a <code>synchronize</code> event: checks re-run against the new head and, if you configured it, existing approvals are dismissed so reviewers have to look at the new code. This loop is the healthiest part of the process and the one most often short-circuited by "just approve it, I'll fix it later".</p>
+  <p><b>Conflicts.</b> Main moved on while you were waiting. The author merges or rebases main into the branch and pushes. Resolutions are new, unreviewed code, so treat them as such (more in the use-case playbook).</p>
+  <p><b>Approved, then merge queue or auto-merge.</b> Once required reviews and checks are satisfied, the PR can merge by hand, merge itself automatically as soon as everything goes green, or enter a merge queue. A queue tests your PR against the latest main plus every PR ahead of it, which prevents the classic "green on its own, red together" breakage.</p>
+  <p><b>Merged, then deployed.</b> The commit lands, the branch is usually deleted, and release automation takes over. Merging is not the end of your responsibility; it is the start of everyone else's.</p>
+
+  <h3>Every way a PR can end</h3>
+</section>
+
+<div class="mid">
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Ending</th><th>What it means</th><th>Worth knowing</th></tr></thead>
+      <tbody>
+        <tr><td>Merged</td><td>Accepted, by merge commit, squash or rebase.</td><td>The method decides what your history and audit trail look like. See the next section.</td></tr>
+        <tr><td>Closed, rejected</td><td>Reviewers decided the change should not land.</td><td>Say why. A silent close teaches contributors nothing and is how projects lose them.</td></tr>
+        <tr><td>Closed, superseded</td><td>Replaced by another PR (a rework, or a duplicate).</td><td>Link the replacement so the discussion is not orphaned.</td></tr>
+        <tr><td>Closed by a stale bot</td><td>Inactivity triggered an automatic close.</td><td>Useful housekeeping, but it can also quietly bury a valid security fix.</td></tr>
+        <tr><td>Merged, then reverted</td><td>The change caused a problem and was rolled back through a new PR.</td><td>Revert PRs are PRs. Give them the same gates, even in a hurry.</td></tr>
+        <tr><td>Merged by bypass</td><td>An admin or bypass-list actor merged without meeting the rules.</td><td>Sometimes necessary. Always alert on it and review the audit log.</td></tr>
+        <tr><td>Reopened</td><td>A closed PR came back.</td><td>Closed does not mean gone. Its commits and discussion remain reachable.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============ MERGE ============ -->
+<section class="col" id="merge">
+  <h2>Merge strategies</h2>
+  <p>"Merge" is not one operation. The three methods below produce three different histories from the same PR, and the choice shapes what <code>git bisect</code>, <code>git revert</code> and your audit trail can see later.</p>
+</section>
+
+<figure class="wide">
+  <div class="plate">
+    <svg class="dg" style="min-width:780px" viewBox="0 0 1000 340" role="img" aria-label="Three small commit graphs. Merge commit: main commits A and B, a feature branch with F1 and F2, and a black merge commit M joining them. Squash: main commits A and B and one black squashed commit S, with F1 and F2 drawn dashed as collapsed. Rebase: a straight line A, B, F1 prime, F2 prime, with F1 and F2 drawn dashed as originals.">
+      <!-- panel 1 -->
+      <text class="b big" x="20" y="34">Merge commit</text>
+      <text class="sm" x="50" y="88" text-anchor="middle">main</text>
+      <path class="f" d="M50 120 H270"/><path class="f" d="M50 120 L110 220"/><path class="f" d="M110 220 H190"/><path class="f" d="M190 220 L270 120"/>
+      <circle class="n0" cx="50" cy="120" r="16"/><text class="b sm" x="50" y="124" text-anchor="middle">A</text>
+      <circle class="n0" cx="130" cy="120" r="16"/><text class="b sm" x="130" y="124" text-anchor="middle">B</text>
+      <circle class="n3" cx="270" cy="120" r="16"/><text class="b sm on3" x="270" y="124" text-anchor="middle">M</text>
+      <circle class="n2" cx="110" cy="220" r="16"/><text class="b sm" x="110" y="224" text-anchor="middle">F1</text>
+      <circle class="n2" cx="190" cy="220" r="16"/><text class="b sm" x="190" y="224" text-anchor="middle">F2</text>
+      <text class="sm" x="150" y="262" text-anchor="middle">feature branch</text>
+      <text class="b" x="20" y="298">Keeps every commit, adds M.</text>
+      <text class="sm" x="20" y="316">Complete history, noisiest graph.</text>
+
+      <!-- panel 2 -->
+      <text class="b big" x="350" y="34">Squash</text>
+      <text class="sm" x="380" y="88" text-anchor="middle">main</text>
+      <path class="f" d="M380 120 H600"/><path class="f dash" d="M380 120 L440 220"/><path class="f dash" d="M440 220 H520"/><path class="f dash thin" d="M520 220 L592.5 130.8" marker-end="url(#ah)"/>
+      <circle class="n0" cx="380" cy="120" r="16"/><text class="b sm" x="380" y="124" text-anchor="middle">A</text>
+      <circle class="n0" cx="460" cy="120" r="16"/><text class="b sm" x="460" y="124" text-anchor="middle">B</text>
+      <circle class="n3" cx="600" cy="120" r="16"/><text class="b sm on3" x="600" y="124" text-anchor="middle">S</text>
+      <circle class="n0 hd" cx="440" cy="220" r="16"/><text class="b sm" x="440" y="224" text-anchor="middle">F1</text>
+      <circle class="n0 hd" cx="520" cy="220" r="16"/><text class="b sm" x="520" y="224" text-anchor="middle">F2</text>
+      <text class="lb sm" x="572" y="196">squashed</text>
+      <text class="sm" x="480" y="262" text-anchor="middle">feature branch (collapsed)</text>
+      <text class="b" x="350" y="298">One commit, S, holds the change.</text>
+      <text class="sm" x="350" y="316">Tidy log, easy revert, coarser bisect.</text>
+
+      <!-- panel 3 -->
+      <text class="b big" x="680" y="34">Rebase</text>
+      <text class="sm" x="710" y="88" text-anchor="middle">main</text>
+      <path class="f" d="M710 120 H950"/>
+      <path class="f dash thin" d="M830 220 L864.3 146" marker-end="url(#ah)"/><path class="f dash thin" d="M910 220 L944.3 146" marker-end="url(#ah)"/>
+      <circle class="n0" cx="710" cy="120" r="16"/><text class="b sm" x="710" y="124" text-anchor="middle">A</text>
+      <circle class="n0" cx="790" cy="120" r="16"/><text class="b sm" x="790" y="124" text-anchor="middle">B</text>
+      <circle class="n2" cx="870" cy="120" r="16"/><text class="b sm" x="870" y="124" text-anchor="middle">F1'</text>
+      <circle class="n2" cx="950" cy="120" r="16"/><text class="b sm" x="950" y="124" text-anchor="middle">F2'</text>
+      <circle class="n0 hd" cx="830" cy="220" r="16"/><text class="b sm" x="830" y="224" text-anchor="middle">F1</text>
+      <circle class="n0 hd" cx="910" cy="220" r="16"/><text class="b sm" x="910" y="224" text-anchor="middle">F2</text>
+      <text class="sm" x="870" y="262" text-anchor="middle">originals (replayed)</text>
+      <text class="b" x="680" y="298">Replays commits on top of main.</text>
+      <text class="sm" x="680" y="316">Linear log, new hashes.</text>
+    </svg>
+  </div>
+  <figcaption><b>Fig. 5.</b> Same PR, three histories. Solid circles exist on main afterwards. Dashed circles exist only on the branch or in the PR. A prime (F1') marks a replayed copy with a new hash.</figcaption>
+</figure>
+
+<section class="col">
+  <p><b>Merge commit</b> preserves everything and makes reverting a whole PR a single operation, at the cost of a busy graph. <b>Squash</b> gives you one readable commit per PR and a one-step revert, but the individual commits and their context are gone from main, which makes bisecting coarser. <b>Rebase</b> gives a straight, linear history and keeps commits separate, but every commit is recreated with a new hash.</p>
+  <p>The security angle: rewriting merges create new commits, so original commit signatures do not carry over verbatim. If your policy leans on signed commits, decide what provenance you actually need, and check what your platform's "require signed commits" rule verifies after each method.</p>
+</section>
+
+<!-- ============ REVIEW ============ -->
+<section class="col" id="review">
+  <h2>Review and feedback</h2>
+  <p>A review is a conversation with a deadline. The best reviews are specific, kind and aimed at the code, not the person. The best responses to reviews are curious and quick.</p>
+
+  <h3>Read in this order</h3>
+  <ol>
+    <li><b>The description and the linked issue.</b> Does the diff do what the author says, and only that?</li>
+    <li><b>The tests.</b> They show what the author thinks the change does. Look for negative cases, not just the happy path.</li>
+    <li><b>Configuration, dependencies and workflows.</b> Small diffs here have outsized blast radius.</li>
+    <li><b>New inputs and trust boundaries.</b> Where does data enter, and where is it validated?</li>
+    <li><b>Authorisation and data exposure.</b> Who can call this, and what could they learn from the response, the logs or the error message?</li>
+    <li><b>The rest of the logic.</b> Then readability and consistency with the surrounding code.</li>
+    <li><b>Longevity.</b> It works today, but will it break something when the next person touches it?</li>
+  </ol>
+</section>
+
+<div class="mid">
+  <div class="duo">
+    <div>
+      <h3>Reviewers: do</h3>
+      <div class="do"><ul>
+        <li>Comment on specific lines.</li>
+        <li>Give feedback that is actionable, neutral and short.</li>
+        <li>Ask about the reasoning behind a choice before judging it.</li>
+        <li>Point out readability and style improvements where they matter.</li>
+        <li>Think about how the code ages and whether it can break other code later.</li>
+        <li>Look for consistency with the rest of the codebase.</li>
+        <li>Say "we" and "us"; the code belongs to the team.</li>
+        <li>For security findings, name the exploit path and suggest a fix.</li>
+      </ul></div>
+    </div>
+    <div>
+      <h3>Reviewers: don't</h3>
+      <div class="dont"><ul>
+        <li>Be vague ("this feels off").</li>
+        <li>Request changes without saying why.</li>
+        <li>Soften feedback so much that quality suffers.</li>
+        <li>Guess at the author's intent or knowledge.</li>
+        <li>Approve what you did not read because the author is senior, or the PR is big.</li>
+      </ul></div>
+    </div>
+    <div>
+      <h3>Authors: do</h3>
+      <div class="do"><ul>
+        <li>Be courteous and appreciative; someone spent time on your work.</li>
+        <li>Ask follow-up questions when feedback is unclear.</li>
+        <li>Answer review questions in neutral language.</li>
+        <li>Act on feedback promptly, and say when you have.</li>
+        <li>Keep PRs small enough to review properly.</li>
+      </ul></div>
+    </div>
+    <div>
+      <h3>Authors: don't</h3>
+      <div class="dont"><ul>
+        <li>Get defensive or deflect blame.</li>
+        <li>Assume you know what the reviewer means; confirm.</li>
+        <li>Read criticism of the code as criticism of you.</li>
+        <li>Push large unrelated changes after approval.</li>
+      </ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ USE CASES ============ -->
+<section class="col" id="usecases">
+  <h2>The use-case playbook</h2>
+  <p>Not every PR is a tidy feature. Here is what each common situation looks like, what to watch for, and which piece of automation earns its keep. Skim for the ones you meet often, and bookmark the rest for the day they show up at your door.</p>
+</section>
+
+<div class="wide">
+  <div class="cards">
+    <div class="card"><h3>Feature PR</h3>
+      <p><b>Looks like</b> a new capability spanning several modules and commits.</p>
+      <p><b>Watch for</b> new inputs and trust boundaries: validation, authorisation, logging. Also scope creep; two features in one PR is two reviews wearing one coat.</p>
+      <p><b>Automate</b> size labels, SAST, required CODEOWNERS approval.</p></div>
+    <div class="card"><h3>Bug-fix PR</h3>
+      <p><b>Looks like</b> a small diff plus a regression test, with the root cause in the description.</p>
+      <p><b>Watch for</b> fixing the symptom only. Ask whether the same bug class exists elsewhere (variant analysis) and whether the test fails without the fix.</p>
+      <p><b>Automate</b> <code>Fixes #123</code> to auto-close the issue; a check that source and test files both changed.</p></div>
+    <div class="card"><h3>Hotfix or emergency</h3>
+      <p><b>Looks like</b> a minimal diff branched from the release tag, needed now.</p>
+      <p><b>Watch for</b> "break glass" becoming habit. Forward-port the fix to main afterwards, or the bug returns in the next release.</p>
+      <p><b>Automate</b> a <code>hotfix/*</code> ruleset that still requires one approval and green checks, plus an auto-opened backport PR.</p></div>
+    <div class="card"><h3>Draft or work in progress</h3>
+      <p><b>Looks like</b> an early PR opened for direction, not approval.</p>
+      <p><b>Watch for</b> secrets or credentials in early, messy commits that have already been pushed.</p>
+      <p><b>Automate</b> run secret scanning on drafts too; keep heavy jobs for the <code>ready_for_review</code> event.</p></div>
+    <div class="card"><h3>Fork PR from a stranger</h3>
+      <p><b>Looks like</b> an open-source contribution from someone with no write access.</p>
+      <p><b>Watch for</b> edits to workflow files, install scripts and build config. Treat the entire PR, including its title and branch name, as untrusted input.</p>
+      <p><b>Automate</b> require approval before workflows run for outside contributors; use metadata-only triage bots (see Fig. 6).</p></div>
+    <div class="card"><h3>First-time contributor or new maintainer</h3>
+      <p><b>Looks like</b> a first PR, or a helpful newcomer who keeps taking on more.</p>
+      <p><b>Watch for</b> trust built over months and then spent in one commit. The 2024 xz-utils backdoor (CVE-2024-3094) was a long game against a burnt-out maintainer, not a clever exploit.</p>
+      <p><b>Automate</b> label by <code>author_association</code>; require a second reviewer for sensitive paths regardless of who wrote the code.</p></div>
+    <div class="card"><h3>Bot PR (Dependabot, Renovate)</h3>
+      <p><b>Looks like</b> a version bump with a generated changelog and a very confident tone.</p>
+      <p><b>Watch for</b> malicious or typosquatted packages, compromised releases and install scripts that run on your build machines.</p>
+      <p><b>Automate</b> dependency review, release-age cooldowns, and a narrow auto-merge policy (see Fig. 8).</p></div>
+    <div class="card"><h3>Docs or typo fix</h3>
+      <p><b>Looks like</b> a README or comment change. Low risk, not zero risk.</p>
+      <p><b>Watch for</b> changed install commands, <code>curl | sh</code> lines, swapped download links and badges that point somewhere new.</p>
+      <p><b>Automate</b> a fast lane by path (<code>docs/**</code>), a link checker, and a rule that any changed command in docs gets a human look.</p></div>
+    <div class="card"><h3>Large refactor</h3>
+      <p><b>Looks like</b> hundreds of files, mostly mechanical, with a few real changes in the middle.</p>
+      <p><b>Watch for</b> reviewer fatigue. Behaviour changes hide in the noise, and "LGTM" arrives suspiciously fast.</p>
+      <p><b>Automate</b> a size check with an explicit override; ask for mechanical and behavioural changes in separate PRs or commits; use <code>git diff --color-moved</code>.</p></div>
+    <div class="card"><h3>Stacked PRs</h3>
+      <p><b>Looks like</b> PR B based on PR A, so each review is small and ordered.</p>
+      <p><b>Watch for</b> approvals given against the wrong base and the retargeting step when A merges. Re-check checks after retargeting.</p>
+      <p><b>Automate</b> stacking tools (Graphite, ghstack) or plain <code>git rebase --onto</code>, plus required checks on every base.</p></div>
+    <div class="card"><h3>Revert PR</h3>
+      <p><b>Looks like</b> a PR created by the "Revert" button, undoing a merged change.</p>
+      <p><b>Watch for</b> pressure to skip review. A rushed revert can break dependents just as a rushed merge did. For merge commits, remember <code>git revert -m 1</code>.</p>
+      <p><b>Automate</b> alert-to-revert-PR for failed deploys, with the same required checks.</p></div>
+    <div class="card"><h3>Release or version-bump PR</h3>
+      <p><b>Looks like</b> a bot-maintained PR that updates version numbers and changelogs.</p>
+      <p><b>Watch for</b> the publish step. Merging this PR often triggers a release with powerful credentials.</p>
+      <p><b>Automate</b> two-person approval for release branches, build provenance and signing, and short-lived publish tokens.</p></div>
+    <div class="card"><h3>Security fix under embargo</h3>
+      <p><b>Looks like</b> a patch for a vulnerability that is not yet public.</p>
+      <p><b>Watch for</b> leaks through a public PR title, branch name or test name. Coordinate disclosure and CVE assignment.</p>
+      <p><b>Automate</b> with a repository security advisory and its temporary private fork, so the fix is reviewed and tested privately, then publish the advisory once it ships.</p></div>
+    <div class="card"><h3>CI, infra or Dockerfile change</h3>
+      <p><b>Looks like</b> workflow YAML, Terraform, Kubernetes manifests or a base image bump.</p>
+      <p><b>Watch for</b> the highest blast radius per line changed: new permissions, new secrets, weaker gates, unpinned actions.</p>
+      <p><b>Automate</b> CODEOWNERS for <code>.github/</code> and <code>infra/</code>; lint with actionlint or zizmor; scan IaC.</p></div>
+    <div class="card"><h3>Cross-team or monorepo change</h3>
+      <p><b>Looks like</b> one PR touching code that several teams own.</p>
+      <p><b>Watch for</b> "someone else will check that". Each owner reviews their slice; nobody reviews the seams.</p>
+      <p><b>Automate</b> CODEOWNERS routing with path filters; one designated integrator to review the interface between slices.</p></div>
+    <div class="card"><h3>Conflicting or stale PR</h3>
+      <p><b>Looks like</b> a PR whose base moved on. Merging main in, or rebasing, resolves conflicts.</p>
+      <p><b>Watch for</b> evil merges: a conflict resolution can add code that is not in either parent. Review the resolution commit, not just the original diff.</p>
+      <p><b>Automate</b> "require branches to be up to date", or a merge queue.</p></div>
+    <div class="card"><h3>Abandoned or rejected PR</h3>
+      <p><b>Looks like</b> a PR closed with a comment, or left to rot.</p>
+      <p><b>Watch for</b> secrets in a closed PR. Deleting the branch or force-pushing does not make old commits vanish from the PR's refs and views. Rotate the credential; do not rely on cleanup.</p>
+      <p><b>Automate</b> stale-bot messages that explain what is needed to reopen.</p></div>
+  </div>
+</div>
+
+<!-- ============ ATTACK ============ -->
+<section class="col" id="attack">
+  <h2>PRs as an attack surface</h2>
+  <p>Treat a pull request as untrusted input to a privileged system. Three things can be hostile: the <b>code</b>, the <b>metadata</b> (title, branch name, description, commit messages), and the <b>process</b> (urgency, social pressure, reviewer fatigue). The riskiest moment is when a workflow runs.</p>
+  <p>Fig. 6 shows the trust boundary for PRs from forks, and the two workflow triggers that sit on either side of it.</p>
+</section>
+
+<figure class="wide">
+  <div class="plate">
+    <svg class="dg" style="min-width:820px" viewBox="0 0 1000 470" role="img" aria-label="Trust boundary diagram. On the left, an untrusted zone contains a fork pull request. In the middle, a light box for the pull_request trigger receives the PR merge ref and passes a result to a status check in the trusted zone on the right. A black box for the pull_request_target trigger receives secrets from a trusted secrets store, and if it checks out PR head code, secrets leak back to the untrusted zone along a dashed path.">
+      <rect class="zone" x="20" y="40" width="290" height="400"/>
+      <text class="b big" x="36" y="66">Untrusted: the contributor's fork</text>
+      <rect class="zone" x="700" y="40" width="280" height="400"/>
+      <text class="b big" x="716" y="66">Trusted: your repository</text>
+
+      <rect class="n1" x="50" y="170" width="230" height="124"/>
+      <text class="b" x="165" y="196" text-anchor="middle">Fork pull request</text>
+      <text class="sm" x="165" y="216" text-anchor="middle">changed code</text>
+      <text class="sm" x="165" y="232" text-anchor="middle">edited workflow files</text>
+      <text class="sm" x="165" y="248" text-anchor="middle">title, branch name, body text</text>
+      <text class="sm" x="165" y="264" text-anchor="middle">commit messages</text>
+
+      <rect class="n1" x="380" y="100" width="260" height="110" rx="14"/>
+      <text class="b" x="510" y="130" text-anchor="middle">pull_request</text>
+      <text class="sm" x="510" y="152" text-anchor="middle">workflow from the PR merge ref</text>
+      <text class="sm" x="510" y="170" text-anchor="middle">read-only token, no secrets</text>
+      <text class="sm" x="510" y="188" text-anchor="middle">safe default for untrusted code</text>
+
+      <rect class="n3" x="380" y="290" width="260" height="110" rx="14"/>
+      <text class="b on3" x="510" y="320" text-anchor="middle">pull_request_target</text>
+      <text class="sm on3" x="510" y="342" text-anchor="middle">workflow from the base branch</text>
+      <text class="sm on3" x="510" y="360" text-anchor="middle">read/write token and secrets</text>
+      <text class="sm on3" x="510" y="378" text-anchor="middle">never run PR code here</text>
+
+      <rect class="n0" x="740" y="110" width="200" height="90" rx="14"/>
+      <text class="b" x="840" y="150" text-anchor="middle">Status check</text>
+      <text class="sm" x="840" y="170" text-anchor="middle">pass or fail on the PR</text>
+      <rect class="n2 dot" x="740" y="310" width="200" height="60"/>
+      <text class="b" x="840" y="335" text-anchor="middle">Repo secrets</text>
+      <text class="sm" x="840" y="353" text-anchor="middle">deploy keys, tokens</text>
+
+      <path class="f" d="M280 200 H369.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="330" y="192" text-anchor="middle">PR merge ref</text>
+      <path class="f thick dash" d="M250 294 V345 H363" marker-end="url(#ahb)"/>
+      <text class="lb sm" x="258" y="322">head checkout</text>
+      <path class="f" d="M640 155 H729.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="690" y="147" text-anchor="middle">result</text>
+      <path class="f" d="M740 340 H650.8" marker-end="url(#ah)"/>
+      <text class="lb sm" x="690" y="332" text-anchor="middle">secrets</text>
+      <path class="f thick dash" d="M510 400 V428 H160 V313" marker-end="url(#ahb)"/>
+      <text class="lb sm" x="335" y="420" text-anchor="middle">secrets leak via logs, network, cache</text>
+    </svg>
+  </div>
+  <figcaption><b>Fig. 6.</b> The trust boundary for fork PRs. Solid arrows are intended flows. Dashed thick arrows are the attack path: checking out attacker code inside a privileged workflow, then watching the secrets walk back out.</figcaption>
+</figure>
+
+<section class="col">
+  <p><b><code>pull_request</code></b> runs the workflow as defined in the PR's merge ref. Since an attacker can edit that workflow, GitHub gives fork PRs a read-only token and withholds secrets. The catch: PRs from branches inside your own repo do get normal access, so anyone with write access can effectively run code with whatever secrets that workflow can see. Scope secrets to environments that require approval.</p>
+  <p><b><code>pull_request_target</code></b> runs the base branch's workflow with a read/write token and secrets, so labelers and commenters can work on fork PRs. It is only safe if it never executes anything from the PR head. The failure mode, popularised as a "pwn request", looks harmless:</p>
+<pre><code># DANGEROUS: privileged trigger + attacker-controlled code
+on: pull_request_target
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@&lt;full-commit-sha&gt;
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}   # ← attacker's code
+      - run: npm ci &amp;&amp; npm test                          # ← runs with secrets in scope</code></pre>
+  <p>Metadata is just as dangerous. This step lets a PR author run shell commands by putting them in the title:</p>
+<pre><code># DANGEROUS: title is spliced into the script before the shell sees it
+- run: echo "Title: ${{ github.event.pull_request.title }}"
+
+# SAFER: pass it as data through an environment variable
+- env:
+    TITLE: ${{ github.event.pull_request.title }}
+  run: echo "Title: $TITLE"</code></pre>
+</section>
+
+<div class="mid">
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Attack</th><th>How it works</th><th>Defence</th></tr></thead>
+      <tbody>
+        <tr><td>Pwn request</td><td>A <code>pull_request_target</code> workflow checks out and runs the PR head, exposing secrets and a write token.</td><td>Never execute PR code in a privileged workflow. Split build (unprivileged) from privileged follow-up, and treat any artifact passed between them as untrusted data.</td></tr>
+        <tr><td>Script injection</td><td>Title, branch name or body is interpolated into a <code>run:</code> step and becomes commands.</td><td>Pass values through <code>env:</code>. Lint workflows with actionlint or zizmor.</td></tr>
+        <tr><td>Unpinned actions</td><td>A third-party action tag is moved to malicious code. In March 2025, tj-actions/changed-files was compromised this way (CVE-2025-30066), dumping secrets into logs.</td><td>Pin actions to full commit SHAs, allow-list approved actions, and let a bot propose updates as reviewable PRs.</td></tr>
+        <tr><td>Malicious dependency</td><td>A new or bumped package is typosquatted, hijacked or ships a hostile install script.</td><td>Dependency review on every PR, lockfile diffs read by a human, release-age cooldowns, minimal install-script exposure.</td></tr>
+        <tr><td>Secrets in the diff</td><td>Credentials committed in code, tests or fixtures. Closed PRs and old commits keep them reachable.</td><td>Push protection and secret scanning; rotate on exposure, never rely on deletion.</td></tr>
+        <tr><td>Gate tampering</td><td>A PR edits workflows, CODEOWNERS or the rules themselves to weaken review.</td><td>CODEOWNERS for <code>.github/</code>; rulesets that protect those files; secrets scoped to protected environments.</td></tr>
+        <tr><td>Hidden Unicode</td><td>Bidirectional or zero-width characters make code render differently from how it executes (Trojan Source, CVE-2021-42574).</td><td>Automated detection in CI. GitHub shows a warning banner, but a banner depends on a human noticing it.</td></tr>
+        <tr><td>Approve, then swap</td><td>Get a benign commit approved, then push a malicious one.</td><td>Dismiss stale approvals on new commits and require approval of the most recent reviewable push.</td></tr>
+        <tr><td>Evil merge</td><td>A conflict resolution smuggles in code that is in neither parent.</td><td>Review merge commits; require up-to-date branches or a merge queue.</td></tr>
+        <tr><td>Review fatigue</td><td>A huge diff, a confident author, a Friday deadline.</td><td>Size limits, small PRs, mechanical changes separated from logic.</td></tr>
+        <tr><td>Long-con social engineering</td><td>Months of legitimate contributions build trust before the malicious change (the xz-utils pattern).</td><td>Two-person rule on sensitive paths regardless of author; verify release artifacts against source.</td></tr>
+        <tr><td>Comment-triggered workflows</td><td>An <code>issue_comment</code> workflow such as <code>/deploy</code> runs with base privileges for whoever types it.</td><td>Check the commenter's association and permissions before acting.</td></tr>
+        <tr><td>Bypass abuse</td><td>Admins or bypass actors merge without meeting the rules.</td><td>Minimise the bypass list; alert on every bypass; review the audit log.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============ AUTOMATION ============ -->
+<section class="col" id="automation">
+  <h2>Automation recipes</h2>
+  <p>The goal is defence in depth: several imperfect layers, each assuming the one before it failed. Fig. 7 shows where each control sits between a keystroke and production.</p>
+</section>
+
+<figure class="wide">
+  <div class="plate">
+    <svg class="dg" style="min-width:900px" viewBox="0 0 1080 290" role="img" aria-label="Six gates in a row, from left to right. Local: pre-commit hooks, secret scan on stage, signed commits, commit-msg lint. Push: push protection, blocks known secrets, no force-push to main, branch name rules. PR checks: tests, SAST, dependency review, workflow linting. Human review: CODEOWNERS approval, security-path owners, threat questions, read the tests first. Merge gate: required checks, dismiss stale reviews, up-to-date branch, merge queue. After merge: signed release and SBOM, build provenance, alerts to revert PR, audit-log review.">
+      <rect class="n0" x="20" y="30" width="160" height="200"/>
+      <text class="b big" x="100" y="58" text-anchor="middle">Local</text>
+      <text class="sm" x="34" y="90">pre-commit hooks</text><text class="sm" x="34" y="112">secret scan on stage</text><text class="sm" x="34" y="134">signed commits</text><text class="sm" x="34" y="156">commit-msg lint</text>
+      <rect class="n0" x="196" y="30" width="160" height="200"/>
+      <text class="b big" x="276" y="58" text-anchor="middle">Push</text>
+      <text class="sm" x="210" y="90">push protection</text><text class="sm" x="210" y="112">blocks known secrets</text><text class="sm" x="210" y="134">no force-push to main</text><text class="sm" x="210" y="156">branch name rules</text>
+      <rect class="n1" x="372" y="30" width="160" height="200"/>
+      <text class="b big" x="452" y="58" text-anchor="middle">PR checks</text>
+      <text class="sm" x="386" y="90">tests</text><text class="sm" x="386" y="112">SAST (CodeQL, Semgrep)</text><text class="sm" x="386" y="134">dependency review</text><text class="sm" x="386" y="156">workflow linting</text>
+      <rect class="n1" x="548" y="30" width="160" height="200"/>
+      <text class="b big" x="628" y="58" text-anchor="middle">Human review</text>
+      <text class="sm" x="562" y="90">CODEOWNERS approval</text><text class="sm" x="562" y="112">security-path owners</text><text class="sm" x="562" y="134">threat questions</text><text class="sm" x="562" y="156">read the tests first</text>
+      <rect class="n2" x="724" y="30" width="160" height="200"/>
+      <text class="b big" x="804" y="58" text-anchor="middle">Merge gate</text>
+      <text class="sm" x="738" y="90">required checks</text><text class="sm" x="738" y="112">dismiss stale reviews</text><text class="sm" x="738" y="134">up-to-date branch</text><text class="sm" x="738" y="156">merge queue</text>
+      <rect class="n3" x="900" y="30" width="160" height="200"/>
+      <text class="b big on3" x="980" y="58" text-anchor="middle">After merge</text>
+      <text class="sm on3" x="914" y="90">signed release + SBOM</text><text class="sm on3" x="914" y="112">build provenance</text><text class="sm on3" x="914" y="134">alerts to revert PR</text><text class="sm on3" x="914" y="156">audit-log review</text>
+      <path class="f thin" d="M182 130 H185.2" marker-end="url(#ah)"/>
+      <path class="f thin" d="M358 130 H361.2" marker-end="url(#ah)"/>
+      <path class="f thin" d="M534 130 H537.2" marker-end="url(#ah)"/>
+      <path class="f thin" d="M710 130 H713.2" marker-end="url(#ah)"/>
+      <path class="f thin" d="M886 130 H889.2" marker-end="url(#ah)"/>
+      <text class="b big" x="540" y="266" text-anchor="middle">Each gate assumes the one before it failed.</text>
+    </svg>
+  </div>
+  <figcaption><b>Fig. 7.</b> The pipeline from keystroke to production. Lighter gates are cheap and early; darker gates are expensive and close to the release.</figcaption>
+</figure>
+
+<section class="col">
+  <h3>1. Route reviews with CODEOWNERS</h3>
+  <p>The last matching pattern wins, and owners need write access. Keep the security-relevant paths pointed at people who care about them.</p>
+<pre><code># .github/CODEOWNERS
+*                        @your-org/maintainers
+/.github/                @your-org/security-team
+/infra/                  @your-org/platform @your-org/security-team
+**/auth/**               @your-org/security-team
+package-lock.json        @your-org/security-team</code></pre>
+
+  <h3>2. Enforce the rules with branch protection</h3>
+  <p>This applies protection to <code>main</code> from the command line, so it can be reviewed and re-applied like any other change. Rulesets are the newer, more flexible route; check current settings names in your platform's docs before relying on this verbatim.</p>
+<pre><code>gh api -X PUT repos/OWNER/REPO/branches/main/protection --input - &lt;&lt;'JSON'
+{
+  "required_status_checks": { "strict": true, "contexts": ["tests", "sast", "dependency-review"] },
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": true,
+    "require_last_push_approval": true
+  },
+  "restrictions": null,
+  "required_linear_history": true,
+  "required_conversation_resolution": true,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+JSON</code></pre>
+
+  <h3>3. A hardened checks workflow</h3>
+  <p>Start with no permissions and grant per job. Pin every third-party action to a full commit SHA (the placeholders below are yours to fill in) and stop the checkout step from leaving credentials on disk. Dependency review needs the dependency graph enabled, and on private repos, GitHub Advanced Security.</p>
+<pre><code># .github/workflows/pr-checks.yml
+name: pr-checks
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@&lt;full-commit-sha&gt;   # v4.x
+        with:
+          persist-credentials: false
+      - run: make test
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@&lt;full-commit-sha&gt;
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@&lt;full-commit-sha&gt;
+        with:
+          fail-on-severity: high
+
+  sast:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@&lt;full-commit-sha&gt;
+        with:
+          persist-credentials: false
+      - run: pipx run semgrep scan --config p/security-audit --error</code></pre>
+
+  <h3>4. A triage bot that is safe to run on fork PRs</h3>
+  <p>This is the one legitimate use of <code>pull_request_target</code> in this post. It never checks anything out. It only reads the list of changed paths and adds a label. Create the label first.</p>
+<pre><code># .github/workflows/pr-triage.yml
+name: pr-triage
+on:
+  pull_request_target:          # privileged: metadata only, never PR code
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label-sensitive-paths:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PRs that touch sensitive paths
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' &gt; changed.txt
+          if grep -Eq '^(\.github/|infra/)|(auth|crypto)|(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|poetry\.lock|go\.sum)$' changed.txt; then
+            gh api -X POST "repos/$REPO/issues/$PR/labels" -f 'labels[]=needs-security-review'
+          fi</code></pre>
+
+  <h3>5. A diff sentry you can run anywhere</h3>
+  <p>A read-only script for research and triage. It walks a PR's changed files and flags sensitive paths, invisible or bidirectional Unicode, network-piped-to-shell, dynamic execution, long encoded blobs and actions that are not pinned to a full SHA. It is a smoke detector, not a verdict: expect false positives and treat silence as "nothing obvious", not "safe".</p>
+<pre><code>#!/usr/bin/env python3
+"""pr_sentry.py - read-only triage of a pull request's diff.
+Usage: GH_TOKEN=... python3 pr_sentry.py OWNER/REPO PR_NUMBER
+Exits 1 if anything was flagged."""
+import os
+import re
+import sys
+
+import requests
+
+INVISIBLE = re.compile("[\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]")
+
+PATH_RULES = [
+    ("CI workflow change", re.compile(r"^\.github/(workflows|actions)/")),
+    ("ownership or policy file", re.compile(r"(^|/)(CODEOWNERS|SECURITY\.md)$")),
+    ("dependency manifest or lockfile", re.compile(
+        r"(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|requirements[^/]*\.txt|"
+        r"poetry\.lock|go\.(mod|sum)|Cargo\.lock|Gemfile\.lock)$")),
+    ("container or infrastructure", re.compile(r"(Dockerfile|\.tf$|docker-compose[^/]*\.ya?ml$)")),
+    ("auth or crypto related path", re.compile(r"(auth|crypto|secret|token|session|permission)", re.I)),
+]
+
+LINE_RULES = [
+    ("network piped into a shell", re.compile(r"(curl|wget)[^\n|]*\|\s*(sudo\s+)?(ba)?sh")),
+    ("dynamic eval or exec", re.compile(r"\b(eval|exec)\s*\(")),
+    ("long base64-looking blob", re.compile(r"[A-Za-z0-9+/]{120,}={0,2}")),
+    ("action not pinned to a full SHA", re.compile(r"uses:\s*[\w./-]+@(?![0-9a-f]{40}\b)\S+")),
+]
+
+
+def api(path, **params):
+    resp = requests.get(
+        f"https://api.github.com{path}",
+        params=params,
+        timeout=30,
+        headers={
+            "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+            "Accept": "application/vnd.github+json",
+        },
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def changed_files(repo, number):
+    page = 1
+    while True:
+        batch = api(f"/repos/{repo}/pulls/{number}/files", per_page=100, page=page)
+        yield from batch
+        if len(batch) &lt; 100:
+            return
+        page += 1
+
+
+def triage(repo, number):
+    findings = []
+    for f in changed_files(repo, number):
+        name, patch = f["filename"], f.get("patch")
+        for label, rx in PATH_RULES:
+            if rx.search(name):
+                findings.append((label, name, "path"))
+        if patch is None:
+            findings.append(("no patch returned (binary or too large)", name, "review by hand"))
+            continue
+        for i, line in enumerate(patch.splitlines(), 1):
+            if not line.startswith("+") or line.startswith("+++"):
+                continue
+            if INVISIBLE.search(line):
+                findings.append(("invisible or bidi character", name, f"patch line {i}"))
+            for label, rx in LINE_RULES:
+                if rx.search(line):
+                    findings.append((label, name, f"patch line {i}"))
+    return findings
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        sys.exit(__doc__)
+    results = triage(sys.argv[1], sys.argv[2])
+    for label, name, where in results:
+        print(f"[{label}] {name} ({where})")
+    print(f"{len(results)} finding(s)")
+    sys.exit(1 if results else 0)</code></pre>
+
+  <h3>6. Daily-driver commands</h3>
+  <p>The GitHub CLI turns most of the PR lifecycle into a few keystrokes. Review untrusted PRs in a disposable VM or container with no credentials, and never run their install scripts on a machine you care about.</p>
+<pre><code>gh pr create --title "fix: validate redirect target" --body-file pr_body.md --draft
+gh pr checks --watch            # wait for CI on the current branch
+gh pr ready                     # take it out of draft
+gh pr diff 123 --patch | less   # read the raw patch
+gh pr checkout 123              # only inside a throwaway sandbox
+gh pr review 123 --request-changes --body "Line 42 trusts the Host header; see thread."
+gh pr merge 123 --auto --squash --delete-branch</code></pre>
+
+  <h3>7. Let bots open PRs, but fence them in</h3>
+  <p>Dependency updates are the biggest source of PRs nobody wrote. Fig. 8 shows a healthy fully automated path, and the one place a human must remain.</p>
+</section>
+
+<figure class="wide">
+  <div class="plate">
+    <svg class="dg" style="min-width:900px" viewBox="0 0 1080 330" role="img" aria-label="Data flow for an automated dependency PR. An advisory feed informs an update bot, which opens a bot pull request. Checks run, then a decision diamond asks whether the result is green and low risk. Yes leads to Merged. No leads to human review, which then leads to Merged.">
+      <rect class="n1" x="20" y="100" width="150" height="70"/>
+      <text class="b" x="95" y="130" text-anchor="middle">Advisory feed</text><text class="sm" x="95" y="149" text-anchor="middle">registry, CVE data</text>
+      <rect class="n0" x="216" y="100" width="150" height="70" rx="18"/>
+      <text class="b" x="291" y="130" text-anchor="middle">Update bot</text><text class="sm" x="291" y="149" text-anchor="middle">Dependabot, Renovate</text>
+      <rect class="n2" x="412" y="100" width="150" height="70" rx="18"/>
+      <text class="b" x="487" y="130" text-anchor="middle">Bot pull request</text><text class="sm" x="487" y="149" text-anchor="middle">branch, diff, notes</text>
+      <rect class="n0" x="608" y="100" width="150" height="70" rx="18"/>
+      <text class="b" x="683" y="130" text-anchor="middle">Checks</text><text class="sm" x="683" y="149" text-anchor="middle">tests + dep review</text>
+      <polygon class="n1" points="850,75 930,135 850,195 770,135"/>
+      <text class="b" x="850" y="131" text-anchor="middle">green and</text><text class="b" x="850" y="148" text-anchor="middle">low risk?</text>
+      <rect class="n3" x="970" y="100" width="90" height="70" rx="18"/>
+      <text class="b on3" x="1015" y="140" text-anchor="middle">Merged</text>
+      <rect class="n1" x="775" y="245" width="150" height="60" rx="18"/>
+      <text class="b" x="850" y="272" text-anchor="middle">Human review</text><text class="sm" x="850" y="290" text-anchor="middle">maintainer decides</text>
+
+      <path class="f" d="M170 135 H205.2" marker-end="url(#ah)"/>
+      <path class="f" d="M366 135 H401.2" marker-end="url(#ah)"/>
+      <path class="f" d="M562 135 H597.2" marker-end="url(#ah)"/>
+      <path class="f" d="M758 135 H759.2" marker-end="url(#ah)"/>
+      <path class="f" d="M930 135 H959.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="949" y="127" text-anchor="middle">yes</text>
+      <path class="f" d="M850 195 V234.2" marker-end="url(#ah)"/>
+      <text class="lb sm" x="860" y="224">no</text>
+      <path class="f" d="M925 275 H1015 V180.8" marker-end="url(#ah)"/>
+
+      <text class="sm" x="291" y="200" text-anchor="middle">watches for new releases</text>
+      <text class="sm" x="487" y="200" text-anchor="middle">same rules as human PRs</text>
+      <text class="sm" x="683" y="200" text-anchor="middle">read-only token</text>
+    </svg>
+  </div>
+  <figcaption><b>Fig. 8.</b> An automated dependency-update path. The bot is a contributor like any other: its PR meets the same gates. The diamond is where policy decides whether a person is needed.</figcaption>
+</figure>
+
+<section class="col">
+  <p>Guardrails that keep this path honest:</p>
+  <ul>
+    <li>Auto-merge only patch and minor updates of low-risk dependencies, and only when every required check is green. Never for major bumps, for changes to workflow files, or for packages with install scripts.</li>
+    <li>Add a cooldown so brand-new releases are not adopted the minute they appear. Renovate calls it <code>minimumReleaseAge</code>; Dependabot has a <code>cooldown</code> setting. Most malicious releases are found and pulled within days.</li>
+    <li>Do not give the auto-merge mechanism a token that can bypass branch rules. The gates are the point.</li>
+    <li>Have the bot propose SHA updates for your pinned actions, so pinning does not mean freezing.</li>
+  </ul>
+</section>
+
+<!-- ============ METRICS ============ -->
+<section class="col" id="metrics">
+  <h2>What to measure</h2>
+  <p>You cannot improve a review process you cannot see. A few numbers are enough. <b>Time to first review</b> shows whether people are blocked. <b>PR size</b> predicts review quality better than almost anything else. <b>Review rounds</b> show unclear requirements or unclear feedback. <b>Stale approvals dismissed</b> shows the control is doing something. <b>Bypass merges</b> should be rare, and every one should have an explanation. <b>Flaky check rate</b> matters because people learn to ignore a check that cries wolf, and then they ignore the real failures too.</p>
+</section>
+
+<!-- ============ RESOURCES ============ -->
+<section class="col" id="resources">
+  <h2>Resources</h2>
+  <p>Disclaimer: I have not vetted these tools personally and I am not affiliated with any of them. Product features and settings names change, so check current documentation before depending on any behaviour described here.</p>
+  <ul>
+    <li><b>PullRequest</b>, a code-review service.</li>
+    <li><b>GitHub Copilot for pull requests</b>, AI-assisted PR descriptions and summaries.</li>
+    <li><b>Semantic PRs</b>, a check that enforces conventional PR titles.</li>
+    <li><b>GitHub Docs: creating a pull request</b>, the reference for the basics.</li>
+    <li>For the automation in this post: CodeQL, Semgrep, gitleaks, actionlint, zizmor, Dependabot and Renovate, all of which have their own documentation.</li>
+  </ul>
+</section>
+
+<!-- ============ CONCLUSION ============ -->
+<section class="col" id="conclusion">
+  <h2>Conclusion</h2>
+  <p>Pull requests bring together communication, review and quality control. They give a structured way to share work and invite feedback, and through review they let a team check readability, optimisation and adherence to standards, which is what keeps a codebase maintainable and stable over time.</p>
+  <p>They are also the busiest trust boundary in your engineering system. Code from strangers, text written by attackers and automation holding powerful tokens all meet at the same button. Design that meeting on purpose: describe your changes well, put the mechanical checks in machines, put intent and judgment in people, and never let the two blur.</p>
+  <p>Reflect on what you built, what was hard, and what you learned. Take feedback as a gift. Give it as one. That habit does more for a codebase, and a team, than any tool on the list above.</p>
+  <div class="note"><p><b>In one breath:</b> a PR is the bridge between a branch and the main codebase. It carries context to colleagues, protects main with an extra layer of review, and works best when the author explains their thinking and the reviewers stay kind, specific and suspicious in equal measure.</p></div>
+</section>
+
+<footer class="col">
+  <p>Diagrams: Fig. 1 and Fig. 2 are monochrome redraws of the original two-colour illustrations. All other figures are original. Configuration snippets are starting points; test them in a scratch repository first.</p>
+</footer>
+
+</main>
+</body>
+</html>
