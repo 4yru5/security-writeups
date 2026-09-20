@@ -1,6 +1,4 @@
-# CTF Writeups
 
-Notes and solutions from capture-the-flag challenges.
 
 ## Writeups
 
