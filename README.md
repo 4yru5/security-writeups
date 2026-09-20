@@ -10,7 +10,6 @@ and security automation.
 ## CTF writeups
 
 - [Alice in Wonderland LLM CTF](https://medium.com/engineering-activefence/alice-in-wonderland-prompt-based-ctf-ai-security-challenge-b6af4b6de75e)
-- [All CTF writeups](./ctf-writeups/)
 
 ## Layout
 
